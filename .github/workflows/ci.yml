@@ -1,0 +1,24 @@
+name: Flask API CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - run: pip install flask mysql-connector-python requests
+
+    - run: python app.py &
+
+    - run: sleep 10
+
+    - run: python test_api.py
