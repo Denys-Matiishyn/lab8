@@ -56,3 +56,8 @@ def delete_buyer(id):
 if __name__ == '__main__':
     app.run(debug=True)
 
+
+    @app.route('/', methods=['GET'])
+    def index():
+        return jsonify({"message": "Hello, server is running!"})
+
