@@ -8,6 +8,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # 1. Створюємо тимчасову базу даних MySQL спеціально для тестів
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: 1234
+          MYSQL_DATABASE: auction
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
     - uses: actions/checkout@v3
 
@@ -15,10 +30,21 @@ jobs:
       with:
         python-version: '3.11'
 
-    - run: pip install flask mysql-connector-python requests
+    - name: Install dependencies
+      run: pip install flask mysql-connector-python requests
 
-    - run: python app.py &
+    # 2. Створюємо таблицю в базі даних (потрібен файл schema.sql!)
+    - name: Setup Database
+      run: mysql -h 127.0.0.1 -P 3306 -u root -p1234 auction < schema.sql
 
-    - run: sleep 10
+    # 3. Запускаємо твій бекенд у фоні
+    - name: Start Flask App
+      run: python app.py &
 
-    - run: python test_api.py
+    # 4. Даємо серверу пару секунд на запуск
+    - name: Wait for server
+      run: sleep 5
+
+    # 5. Запускаємо тести!
+    - name: Run tests
+      run: python test_api.py
